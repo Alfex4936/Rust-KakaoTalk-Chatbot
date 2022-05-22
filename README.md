@@ -29,6 +29,8 @@ Rust언어로 24시간 운영되는 간단한 카카오톡 챗봇 서버를 만�
 또는 직접 친구 추가해서 사용해 볼 수 있습니다. [친구 추가하기](https://pf.kakao.com/_RUcxnK)
 </div>
 
+---
+
 이 프로젝트에서는 MongoDB에 간단한 데이터(2022년 공휴일)를 저장하고
 
 카카오톡에서 "달력"과 같은 메시지를 챗봇에게 보내면 DB에 저장된 공휴일들을 불러올 예정입니다.
@@ -46,6 +48,8 @@ Rust언어로 24시간 운영되는 간단한 카카오톡 챗봇 서버를 만�
 워낙 빠른 속도와 안정성 때문에 서버 쪽에서 인기를 받고 있으며
 
 수업 때 보신 C가 최고라며 하는 깐깐한 [Linus Torvalds](https://ko.wikipedia.org/wiki/%EB%A6%AC%EB%88%84%EC%8A%A4_%ED%86%A0%EB%A5%B4%EB%B0%9C%EC%8A%A4)가 리눅스 커널 개발 공식 언어로 추가했습니다.
+
+> “Who knows. That’s not the point. The point is for a project to stay interesting — and to stay fun — you have to play with it.” - Linus Torvalds
 
 ## 언어 특징
 
@@ -66,9 +70,9 @@ let y = x;
 println!("{}", x); // ERROR: value borrowed here after move
 ```
 
-그러면 x도 출력하고 y도 출력하고 싶으면 borrowing을 해야합니다. (빌려주기)
+그러면 x도 출력하고 y도 출력하고 싶으면 `borrowing`을 해야합니다. (빌려주기)
 
-예를 들면 자신이 자동차 한 대를 갖고 있다고 해봅시다.
+예를 들면 자신이 `자동차` 한 대를 갖고 있다고 해봅시다.
 
 그러면 사진을 찍어서 친구들에게 줄 수 있고 친구들이 내 차가 어떻게 생긴지 알지만
 
@@ -103,6 +107,56 @@ impl<'de> Deserialize<'de> for Button {
     {
     ...
 ```
+
+# 코딩 시작
+
+긴 서론을 넘어 코딩을 시작해보십니다.
+
+## 셋업
+<details><summary><b>Rust언어 설치하기</b></summary>
+
+1. Rust 공식 홈페이지에서 [@다운로드](https://www.rust-lang.org/tools/install)
+
+2. 새로운 프로젝트 생성 (cmd/powershell/bash):
+
+    ```sh
+    $ cargo new my_kakao
+    ```
+    
+    ![image](https://user-images.githubusercontent.com/2356749/169691825-00e754ed-0331-4b0b-9d11-ab09e4110d77.png)
+
+3. 현재 디렉토리에 my_kakao란 폴더로 이동:
+
+    ```sh
+    $ cd my_kakao
+    ```
+
+4. `Cargo.toml` 수정:
+
+    ```diff
+      "size-limit": [
+        {
+    +     "limit": "35 kB",
+          "path": "dist/app-*.js"
+        }
+      ],
+    ```
+
+5. Add the `size` script to your test suite:
+
+    ```diff
+      "scripts": {
+        "build": "webpack ./webpack.config.js",
+        "size": "npm run build && size-limit",
+    -   "test": "jest && eslint ."
+    +   "test": "jest && eslint . && npm run size"
+      }
+    ```
+
+6. If you don’t have a continuous integration service running, don’t forget
+   to add one — start with [Travis CI].
+
+</details>
 
 <details><summary><b>사용법 보기</b></summary>
 
