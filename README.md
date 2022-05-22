@@ -112,6 +112,12 @@ impl<'de> Deserialize<'de> for Button {
 
 긴 서론을 넘어 코딩을 시작해보십니다.
 
+우선 카카오챗봇 서버를 만들기 위해서는 REST API를 이용해야합니다.
+
+무조건 POST로 된 endpoint에 HTTP 응답은 항상 200 (OK)를 보내야합니다. (오류 상황에서도)
+
+웹 프레임워크는 Rust에서 유명하고 빠른 actix를 사용할 것입니다.
+
 ## 셋업
 <details><summary><b>Rust언어 설치하기</b></summary>
 
@@ -133,28 +139,46 @@ impl<'de> Deserialize<'de> for Button {
 
 4. `Cargo.toml` 수정:
 
-    ```diff
-      "size-limit": [
-        {
-    +     "limit": "35 kB",
-          "path": "dist/app-*.js"
-        }
-      ],
+    dependencies 아래에 코드처럼 바꿔주세요.
+    외부 라이브러리 사용할 때 cargo.toml에 적으면 됩니다.
+
+    ```toml
+    [dependencies]
+    actix-rt = "2"
+    actix-http = "3"
+    actix-web = "4" 
+    serde = { version = "1.0", features = ["derive"] }
+    serde_json = "1.0"
+    serde_derive = "1.0"
+    mongodb = "2"
+    kakao-rs = "0.3"
+
+    [profile.dev]
+    opt-level = 0
+
+    [profile.release]
+    opt-level = 3
     ```
 
-5. Add the `size` script to your test suite:
+5. `struct Holiday`:
 
-    ```diff
-      "scripts": {
-        "build": "webpack ./webpack.config.js",
-        "size": "npm run build && size-limit",
-    -   "test": "jest && eslint ."
-    +   "test": "jest && eslint . && npm run size"
-      }
+    각 공휴일마다 갖는 데이터를 적어줍니다.
+    (DB 모델 따라서)
+
+    ```rust
+    pub struct Holiday {
+        pub name: String, // varchar, 명칭
+        pub date: String, // varchar, 날짜
+        pub day_of_week: String, // vachar, 요일
+    }
     ```
+</details>
 
-6. If you don’t have a continuous integration service running, don’t forget
-   to add one — start with [Travis CI].
+<details><summary><b></b></summary>
+
+1. Rust와 MongoDB 연결하기
+
+    
 
 </details>
 
