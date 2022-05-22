@@ -174,11 +174,94 @@ impl<'de> Deserialize<'de> for Button {
     ```
 </details>
 
-<details><summary><b></b></summary>
+<details><summary><b>Rust MongoDB 연동</b></summary>
 
-1. Rust와 MongoDB 연결하기
+1. `src/lib.rs` 수정
 
+    사용할 library 및 전역 변수들을 `lib.rs`에 주로 넣어줍니다.
+
+    `SERVER`에 원하는 포트와 주소를 적어도 됩니다.
     
+    `0.0.0.0`으로 하면 모든 사람이 접속 가능한 서버가 열립니다.
+
+    `MONGO_URL`은 시스템 환경변수 편집에서 `MONGODB_URL`에다 넣거나
+
+    아예 주소로 그냥 바꿔도 됩니다.
+
+    ```rust
+    // src/lib.rs
+    #![feature(proc_macro_hygiene, decl_macro)]
+
+    #[macro_use]
+    extern crate serde_derive;
+    #[macro_use]
+    extern crate serde_json;
+
+    extern crate mongodb;
+
+    use mongodb::Client;
+    use std::sync::Mutex;
+    pub type Mongo = Mutex<Client>;
+
+    mod db;
+    mod routes;
+
+    pub use db::model;
+    pub use routes::*;
+
+    // 아래 URL에는 mongo+srv//id:password~~~~
+    // 형태로 된 주소 복사하거나 환경 변수에 넣어서 보호
+    pub const MONGO_URL: &str = env!("MONGODB_URL");
+    pub const SERVER: &str = "0.0.0.0:8010";
+
+    // DB Holiday 모델
+    #[derive(Serialize, Deserialize, Debug, Default, Clone)]
+    pub struct Holiday {
+        pub name: String,
+        pub date: String,
+        pub day_of_week: String,
+    }
+    ```
+
+2. `src/main.rs` 메인 함수 편집
+
+    프로그램을 실행하면 main 함수가 실행됩니다.
+
+    ```rust
+    use actix_cors::Cors;
+    use actix_web::{middleware, web, App, HttpServer};
+    use mongodb::{options::ClientOptions, Client};
+    use std::sync::Mutex;
+
+    pub async fn init_mongo() -> my_kakao::Mongo {
+        let client_options = ClientOptions::parse(my_kakao::MONGO_URL).await.unwrap();
+        Mutex::new(Client::with_options(client_options).unwrap())
+    }
+
+    #[actix_web::main]
+    async fn main() -> std::io::Result<()> {
+        let data = web::Data::new(init_mongo().await);  // MongoDB 초기화
+
+        // 서버 실행
+        HttpServer::new(move || {
+            let cors = Cors::default().max_age(3600).allowed_methods(vec!["GET", "POST"]);
+            App::new()
+                .wrap(cors)
+                .app_data(data.clone()) // <- db는 이런 식으로 서버로 연동
+                .wrap(middleware::Logger::default())
+                .service(rustserver::route::get_notices)
+        })
+        .bind(my_kakao::SERVER)?
+        .run()
+        .await
+    }
+    ```
+
+3. 현재 디렉토리에 my_kakao란 폴더로 이동:
+
+    ```sh
+    $ cd my_kakao
+    ```
 
 </details>
 
