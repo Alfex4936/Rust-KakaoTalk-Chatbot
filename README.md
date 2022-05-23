@@ -223,8 +223,8 @@ impl<'de> Deserialize<'de> for Button {
         Mutex::new(Client::with_options(client_options).unwrap())
     }
 
-    #[post("/info/schedule")]
-    pub async fn get_schedule(conn: web::Data<Mongo>) -> impl Responder {
+    #[post("/holiday")]
+    pub async fn get_holidays(conn: web::Data<Mongo>) -> impl Responder {
         let mut result = Template::new();
         let mut carousel = Carousel::new().set_type(BasicCard::id());
 
@@ -275,12 +275,13 @@ impl<'de> Deserialize<'de> for Button {
             App::new()
                 .app_data(data.clone()) // <- db는 이런 식으로 서버로 연동
                 .wrap(middleware::Logger::default())
-            // .service(rustserver::route::get_notices)
+                .service(get_holidays)
         })
         .bind(SERVER)?
         .run()
         .await
     }
+
 
 
     ```
