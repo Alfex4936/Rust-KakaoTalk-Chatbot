@@ -147,6 +147,7 @@ impl<'de> Deserialize<'de> for Button {
     actix-rt = "2"
     actix-http = "3"
     actix-web = "4" 
+    futures = "0.3"
     serde = { version = "1.0", features = ["derive"] }
     serde_json = "1.0"
     serde_derive = "1.0"
@@ -155,23 +156,12 @@ impl<'de> Deserialize<'de> for Button {
 
     [profile.dev]
     opt-level = 0
+    debug = true
 
     [profile.release]
     opt-level = 3
     ```
 
-5. `struct Holiday`:
-
-    각 공휴일마다 갖는 데이터를 적어줍니다.
-    (DB 모델 따라서)
-
-    ```rust
-    pub struct Holiday {
-        pub name: String, // varchar, 명칭
-        pub date: String, // varchar, 날짜
-        pub day_of_week: String, // vachar, 요일
-    }
-    ```
 </details>
 
 <details><summary><b>Rust MongoDB 연동</b></summary>
@@ -199,16 +189,6 @@ impl<'de> Deserialize<'de> for Button {
 
     extern crate mongodb;
 
-    use mongodb::Client;
-    use std::sync::Mutex;
-    pub type Mongo = Mutex<Client>;
-
-    mod db;
-    mod routes;
-
-    pub use db::model;
-    pub use routes::*;
-
     // 아래 URL에는 mongo+srv//id:password~~~~
     // 형태로 된 주소 복사하거나 환경 변수에 넣어서 보호
     pub const MONGO_URL: &str = env!("MONGODB_URL");
@@ -221,6 +201,7 @@ impl<'de> Deserialize<'de> for Button {
         pub date: String,
         pub day_of_week: String,
     }
+
     ```
 
 2. `src/main.rs` 메인 함수 편집
@@ -228,33 +209,80 @@ impl<'de> Deserialize<'de> for Button {
     프로그램을 실행하면 main 함수가 실행됩니다.
 
     ```rust
-    use actix_cors::Cors;
-    use actix_web::{middleware, web, App, HttpServer};
-    use mongodb::{options::ClientOptions, Client};
+    use actix_web::{middleware, post, web, App, HttpResponse, HttpServer, Responder};
+    use futures::TryStreamExt;
+    use kakao_rs::prelude::*;
+    use mongodb::{bson::doc, options::ClientOptions, Client};
+    use my_kakao::{Holiday, MONGO_URL, SERVER};
     use std::sync::Mutex;
 
-    pub async fn init_mongo() -> my_kakao::Mongo {
-        let client_options = ClientOptions::parse(my_kakao::MONGO_URL).await.unwrap();
+    type Mongo = Mutex<Client>;
+
+    async fn init_mongo() -> Mongo {
+        let client_options = ClientOptions::parse(MONGO_URL).await.unwrap();
         Mutex::new(Client::with_options(client_options).unwrap())
+    }
+
+    #[post("/info/schedule")]
+    pub async fn get_schedule(conn: web::Data<Mongo>) -> impl Responder {
+        let mut result = Template::new();
+        let mut carousel = Carousel::new().set_type(BasicCard::id());
+
+        let db = &conn;
+
+        for sched in show_scheds(db).await.unwrap() {
+            // println!("id: {}, content: {}", sched.id, sched.content);
+
+            let basic_card = BasicCard::new()
+                .set_title(sched.name)
+                .set_desc(format!("{}", sched.date))
+                .set_thumbnail(
+                    "https://raw.githubusercontent.com/Alfex4936/kakaoChatbot-Ajou/main/imgs/{}.png",
+                );
+
+            carousel.add_card(basic_card.build_card());
+        }
+
+        result.add_output(carousel.build());
+
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(serde_json::to_string(&result).unwrap())
+    }
+
+    pub async fn show_scheds(conn: &Mongo) -> Result<Vec<Holiday>, ()> {
+        let sched_collection = conn
+            .lock()
+            .unwrap()
+            .database("ajou")
+            .collection::<Holiday>("schedule");
+
+        let mut scheds = sched_collection.find(doc! {}, None).await.unwrap();
+        let mut result: Vec<Holiday> = Vec::new();
+        while let Some(sched) = scheds.try_next().await.unwrap() {
+            result.push(sched);
+        }
+
+        Ok(result)
     }
 
     #[actix_web::main]
     async fn main() -> std::io::Result<()> {
-        let data = web::Data::new(init_mongo().await);  // MongoDB 초기화
+        let data = web::Data::new(init_mongo().await); // MongoDB 초기화
 
         // 서버 실행
         HttpServer::new(move || {
-            let cors = Cors::default().max_age(3600).allowed_methods(vec!["GET", "POST"]);
             App::new()
-                .wrap(cors)
                 .app_data(data.clone()) // <- db는 이런 식으로 서버로 연동
                 .wrap(middleware::Logger::default())
-                .service(rustserver::route::get_notices)
+            // .service(rustserver::route::get_notices)
         })
-        .bind(my_kakao::SERVER)?
+        .bind(SERVER)?
         .run()
         .await
     }
+
+
     ```
 
 3. 현재 디렉토리에 my_kakao란 폴더로 이동:
