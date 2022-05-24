@@ -164,6 +164,66 @@ impl<'de> Deserialize<'de> for Button {
 
 </details>
 
+<details><summary><b>AWS EC2 셋업</b></summary>
+
+1. `365일`동안 계정을 새로 만들었다면 무료로 24시간 운영할 수 있다.
+
+    EC2는 아마존 서버에 원하는 운영체제를 설치해 빌릴 수 있는 공간이다.
+
+    수업 때 하는 oss@git.ajou.ac.kr 서버랑 똑같다.
+
+    근데 이 셋업 과정이 좀 길고 귀찮다.
+
+    이 [@서버](https://ap-northeast-2.console.aws.amazon.com/console/home?region=ap-northeast-2#)로 들어가서 계정을 만든다.
+
+    그러면 메인 화면에 `EC2`가 있는데 클릭해서 `인스턴스 시작` 버튼을 눌러
+
+    원하는 OS를 설치한다. (Ubuntu 20.04 LTS 설치하세요)
+
+    ![image](https://user-images.githubusercontent.com/2356749/169937872-5db72fcc-032f-4f5d-93a3-d769c2f53e16.png)
+
+2. pem 키, 인증 파일을 받아서 `ssh -i my.pem 주소` 로 접속하는게 보통인데
+
+    파일 경로를 항상 입력해야해서 oss 처럼 비밀번호로 접속할 것이다.
+
+    내 인스턴스를 클릭하고 우측 `연결` 버튼을 눌러서 웹에서 접속한다.
+
+    ![image](https://user-images.githubusercontent.com/2356749/169938301-b337c7ae-ebfc-4767-9778-9e31364319e9.png)
+
+    먼저 계정 비밀번호를 설정한다.
+
+    ```sh
+    $ sudo passwd ubuntu
+    ```
+
+    원하는 비밀번호를 입력한 후
+
+    ```sh
+    $ sudo vim /etc/ssh/sshd_config
+    ```
+
+    위 명령어를 입력하고 `PasswordAuthentication yes`를 해준다.
+
+    ![image](https://user-images.githubusercontent.com/2356749/169939359-a953812a-3bcf-415c-a332-1707aa821b4e.png)
+
+    ```sh
+    $ sudo service sshd restart
+    ```
+
+    그러면 본인 컴퓨터 cmd/powershell/terminal에서 아래를 입력하면
+
+    접속이 성공한다. 주소는 ec2- 로 시작하는 것을 찾는다. (인스턴스 정보에서)
+
+    ```sh
+    $ ssh ubuntu@인스턴스_퍼블릭_IPv4_DNS_주소_입력하세요
+    ```
+
+    익숙한 그 화면을 볼 수 있다.
+    
+    ![image](https://user-images.githubusercontent.com/2356749/169940234-7edbcddf-5176-490e-be64-f465d9abe77a.png)
+
+</details>
+
 <details><summary><b>Rust MongoDB 연동</b></summary>
 
 1. `src/lib.rs` 수정
