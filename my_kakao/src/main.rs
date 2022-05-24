@@ -16,6 +16,11 @@ async fn init_mongo() -> Mongo {
 pub async fn get_holidays(conn: web::Data<Mongo>) -> impl Responder {
     let mut result = Template::new();
     let mut carousel = Carousel::new().set_type(BasicCard::id());
+    carousel.set_header(
+        "2022년 공휴일",
+        "FOSS",
+        "https://www.ajou.ac.kr/_res/ajou/kr/img/intro/img-slogan08.png",
+    );
 
     let db = &conn;
 

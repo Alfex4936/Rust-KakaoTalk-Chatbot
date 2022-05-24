@@ -648,3 +648,51 @@ pub async fn get_today_notice(kakao: web::Json<Value>) -> impl Responder {
 * SimpleImage, SimpleText
 * Button(Call, Share, Link, Text)
 * BasicCard, CommerceCard, ItemCard
+
+# 빌드
+
+거의 마지막 단계이다.
+
+카카오톡 채널을 만들고 챗봇을 연결하고 배포를 하면 끝이다. (서버도 실행하고)
+
+채널은 [@여기서](https://center-pf.kakao.com/profiles) 만들고 챗봇 설정에서 채널을 연결하면 된다.
+
+![image](https://user-images.githubusercontent.com/2356749/169988569-f1e0e491-392a-4794-a665-3ac9e4f47afe.png)
+
+![image](https://user-images.githubusercontent.com/2356749/169983892-b3ebbbd4-c07d-4732-b206-6f6a7f7cea2e.png)
+
+서버 실행은 AWS EC2에서 소스를 빌드하던가 WSL2를 이용해 리눅스 버전으로 빌드한 후에
+
+SCP 명령어로 EC2에 업로드해서 바이너리만 실행해도 된다.
+
+`nohup` 명령어는 백그라운드에서 실행하게 해주는 명령어다.
+
+로그아웃하더라도 프로세스는 계속 살아있어 24시간 서버가 완성된다.
+
+```sh
+$ wsl
+$ cargo build
+$ cd target/debug
+$ scp my_kakao ubuntu@ec2-서버:~/
+$ ssh ubuntu@ec2-서버
+$ chmod +x my_kakao
+$ nohup ./my_kakao &
+```
+
+![image](https://user-images.githubusercontent.com/2356749/169987894-176c500b-4cb1-4bfb-9871-350b39bbeeeb.png)
+
+결과물 카카오톡 친구 추가하기 [@링크](https://pf.kakao.com/_ESnxkb)
+
+# 마치며
+
+처음에 만들려고 할 때 리눅스, Rust, DB, 서버 등 다양한 지식들이 필요했다.
+
+하지만 수업 때 배운 지식들로도 충분히 가능하다고 생각한다.
+
+처음에 Python으로 만들어보고, Go언어로 만들어보고 Rust언어로 만들게되었는데
+
+(MySQL에서 MongoDB로 바꿈)
+
+개인적인 기준으로 Rust가 제일 빠르고, 깔끔하게 코딩이 가능했다.
+
+자신만의 좋은 아이디어로 빠른 카카오톡 챗봇 서버를 만들어보자!
