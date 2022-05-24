@@ -20,17 +20,15 @@ pub async fn get_holidays(conn: web::Data<Mongo>) -> impl Responder {
     let db = &conn;
 
     for holiday in show_holidays(db).await.unwrap() {
-        println!(
-            "name: {}, date: {}, day_of_week: {}",
-            holiday.name, holiday.date, holiday.day_of_week
-        );
+        // println!(
+        //     "name: {}, date: {}, day_of_week: {}",
+        //     holiday.name, holiday.date, holiday.day_of_week
+        // );
 
-        let basic_card = BasicCard::new()
-            .set_title(holiday.name)
-            .set_desc(format!("{}", holiday.date))
-            .set_thumbnail(
-                "https://raw.githubusercontent.com/Alfex4936/kakaoChatbot-Ajou/main/imgs/{}.png",
-            );
+        let basic_card = BasicCard::new().set_title(holiday.name).set_desc(format!(
+            "날짜: {} ({}요일)",
+            holiday.date, holiday.day_of_week
+        ));
 
         carousel.add_card(basic_card.build_card());
     }

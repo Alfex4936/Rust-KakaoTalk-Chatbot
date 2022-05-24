@@ -232,9 +232,21 @@ TIP
 
 <details><summary><b>MongoDB 셋업</b></summary>
 
-1. 공휴일 데이터 입력하기
+1. MongoDB Atlas를 이용해서 무료 클러스터를 만든다. ([@링크](https://www.mongodb.com/cloud/atlas/register))
 
-    수동으로 입력하던지 아래 json 파일을 만들어서 `Add Data - Import File` 한다.
+    ![image](https://user-images.githubusercontent.com/2356749/169950092-a5fa9478-db64-4172-86e1-63494a72a4e2.png)
+
+    `Connect` 버튼을 누르고 `Connect your application`을 누르면 연결 주소가 나온다.
+
+    `mongodb+srv://root~~~~`
+
+2. 공휴일 데이터 입력하기
+
+    MongoDB Compass 프로그램을 이용하면 쉽게
+
+    DB를 확인할 수 있다. (mysql workbench처럼)
+
+    수동으로 입력하던지 아래 json 파일을 만들어서 `ADD DATA - Import File` 한다.
 
     ```json
     [
@@ -347,17 +359,15 @@ TIP
         let db = &conn;
 
         for holiday in show_holidays(db).await.unwrap() {
-            println!(
-                "name: {}, date: {}, day_of_week: {}",
-                holiday.name, holiday.date, holiday.day_of_week
-            );
+            // println!(
+            //     "name: {}, date: {}, day_of_week: {}",
+            //     holiday.name, holiday.date, holiday.day_of_week
+            // );
 
-            let basic_card = BasicCard::new()
-                .set_title(holiday.name)
-                .set_desc(format!("{}", holiday.date))
-                .set_thumbnail(
-                    "https://raw.githubusercontent.com/Alfex4936/kakaoChatbot-Ajou/main/imgs/{}.png",
-                );
+            let basic_card = BasicCard::new().set_title(holiday.name).set_desc(format!(
+                "날짜: {} ({}요일)",
+                holiday.date, holiday.day_of_week
+            ));
 
             carousel.add_card(basic_card.build_card());
         }
@@ -400,6 +410,7 @@ TIP
         .run()
         .await
     }
+
     ```
 
 </details>
