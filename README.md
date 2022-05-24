@@ -1,6 +1,8 @@
 <div align="center">
+    <img width="680" src="https://github.com/Alfex4936/kakaoChatbot-Ajou/blob/main/imgs/chatbot.png">
     <p style="font-size:60px">카카오톡 챗봇</p>
     <p style="font-size:18px">2022-1 오픈소스SW 수업 기말과제</p>
+    <a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FAlfex4936%2F2022_FOSS&count_bg=%231C56FF&title_bg=%23000000&icon=github.svg&icon_color=%23E7E7E7&title=FOSS&edge_flat=true"/></a>
 </div>
 
 # 시작하기
