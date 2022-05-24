@@ -19,12 +19,15 @@ pub async fn get_holidays(conn: web::Data<Mongo>) -> impl Responder {
 
     let db = &conn;
 
-    for sched in show_scheds(db).await.unwrap() {
-        // println!("id: {}, content: {}", sched.id, sched.content);
+    for holiday in show_holidays(db).await.unwrap() {
+        println!(
+            "name: {}, date: {}, day_of_week: {}",
+            holiday.name, holiday.date, holiday.day_of_week
+        );
 
         let basic_card = BasicCard::new()
-            .set_title(sched.name)
-            .set_desc(format!("{}", sched.date))
+            .set_title(holiday.name)
+            .set_desc(format!("{}", holiday.date))
             .set_thumbnail(
                 "https://raw.githubusercontent.com/Alfex4936/kakaoChatbot-Ajou/main/imgs/{}.png",
             );
@@ -39,17 +42,17 @@ pub async fn get_holidays(conn: web::Data<Mongo>) -> impl Responder {
         .body(serde_json::to_string(&result).unwrap())
 }
 
-pub async fn show_scheds(conn: &Mongo) -> Result<Vec<Holiday>, ()> {
-    let sched_collection = conn
+pub async fn show_holidays(conn: &Mongo) -> Result<Vec<Holiday>, ()> {
+    let holiday_collection = conn
         .lock()
         .unwrap()
-        .database("ajou")
-        .collection::<Holiday>("schedule");
+        .database("foss")
+        .collection::<Holiday>("holiday");
 
-    let mut scheds = sched_collection.find(doc! {}, None).await.unwrap();
+    let mut holidays = holiday_collection.find(doc! {}, None).await.unwrap();
     let mut result: Vec<Holiday> = Vec::new();
-    while let Some(sched) = scheds.try_next().await.unwrap() {
-        result.push(sched);
+    while let Some(holiday) = holidays.try_next().await.unwrap() {
+        result.push(holiday);
     }
 
     Ok(result)

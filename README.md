@@ -222,6 +222,62 @@ impl<'de> Deserialize<'de> for Button {
     
     ![image](https://user-images.githubusercontent.com/2356749/169940234-7edbcddf-5176-490e-be64-f465d9abe77a.png)
 
+TIP
+
+    서버 주소를 고정하고 싶으면 elastic ip 하나를 부여하면 된다. (한 인스턴스 연결 무료)
+
+    주의할 점은 인스턴스를 1년 후에 종료하고 elastic ip 해제를 안하면 이것도 돈이 나간다.
+
+</details>
+
+<details><summary><b>MongoDB 셋업</b></summary>
+
+1. 공휴일 데이터 입력하기
+
+    수동으로 입력하던지 아래 json 파일을 만들어서 `Add Data - Import File` 한다.
+
+    ```json
+    [
+    {
+        "name": "제 8회 전국동시지방선거",
+        "date": "6월 1일",
+        "day_of_week": "수"
+    },
+    {
+        "name": "현충일",
+        "date": "6월 6일",
+        "day_of_week": "월"
+    },
+    {
+        "name": "광복절",
+        "date": "8월 15일",
+        "day_of_week": "월"
+    },
+    {
+        "name": "추석",
+        "date": "9월 9일 ~ 12일",
+        "day_of_week": "금 ~ 월"
+    },
+    {
+        "name": "개천절",
+        "date": "10월 3일",
+        "day_of_week": "월"
+    },
+    {
+        "name": "한글날 대체공휴일",
+        "date": "10월 10일",
+        "day_of_week": "월"
+    },
+    {
+        "name": "크리스마스",
+        "date": "12월 25일",
+        "day_of_week": "일"
+    }
+    ]
+    ```
+
+    ![image](https://user-images.githubusercontent.com/2356749/169946784-8579db78-4df8-49ce-bbec-dd1e6e591af9.png)
+
 </details>
 
 <details><summary><b>Rust MongoDB 연동</b></summary>
@@ -290,12 +346,15 @@ impl<'de> Deserialize<'de> for Button {
 
         let db = &conn;
 
-        for sched in show_scheds(db).await.unwrap() {
-            // println!("id: {}, content: {}", sched.id, sched.content);
+        for holiday in show_holidays(db).await.unwrap() {
+            println!(
+                "name: {}, date: {}, day_of_week: {}",
+                holiday.name, holiday.date, holiday.day_of_week
+            );
 
             let basic_card = BasicCard::new()
-                .set_title(sched.name)
-                .set_desc(format!("{}", sched.date))
+                .set_title(holiday.name)
+                .set_desc(format!("{}", holiday.date))
                 .set_thumbnail(
                     "https://raw.githubusercontent.com/Alfex4936/kakaoChatbot-Ajou/main/imgs/{}.png",
                 );
@@ -310,17 +369,17 @@ impl<'de> Deserialize<'de> for Button {
             .body(serde_json::to_string(&result).unwrap())
     }
 
-    pub async fn show_scheds(conn: &Mongo) -> Result<Vec<Holiday>, ()> {
-        let sched_collection = conn
+    pub async fn show_holidays(conn: &Mongo) -> Result<Vec<Holiday>, ()> {
+        let holiday_collection = conn
             .lock()
             .unwrap()
-            .database("ajou")
-            .collection::<Holiday>("schedule");
+            .database("foss")
+            .collection::<Holiday>("holiday");
 
-        let mut scheds = sched_collection.find(doc! {}, None).await.unwrap();
+        let mut holidays = holiday_collection.find(doc! {}, None).await.unwrap();
         let mut result: Vec<Holiday> = Vec::new();
-        while let Some(sched) = scheds.try_next().await.unwrap() {
-            result.push(sched);
+        while let Some(holiday) = holidays.try_next().await.unwrap() {
+            result.push(holiday);
         }
 
         Ok(result)
@@ -341,20 +400,11 @@ impl<'de> Deserialize<'de> for Button {
         .run()
         .await
     }
-
-
-
-    ```
-
-3. 현재 디렉토리에 my_kakao란 폴더로 이동:
-
-    ```sh
-    $ cd my_kakao
     ```
 
 </details>
 
-<details><summary><b>사용법 보기</b></summary>
+<details><summary><b>ㅋㅋㅋ</b></summary>
 
 1. Install the preset:
 
