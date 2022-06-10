@@ -15,7 +15,9 @@ Rust언어로 24시간 운영되는 간단한 카카오톡 챗봇 서버를 만�
 
 다만, 알면 좋을만한 언어 문법, 설정은 같이 포함하고 있습니다.
 
-따라서 언어를 잘 몰라도 일단 따라하면서 익힐 수 있도록 목표 삼았습니다.
+따라서 언어를 잘 몰라도 일단 따라하면서 익힐 수 있도록 목표 삼았습니다.]
+
+(Rust 1.63.0 + WSL2 환경에서 제작됨)
 
 # 무엇을 만들 것인가?
 
@@ -55,7 +57,7 @@ Rust언어로 24시간 운영되는 간단한 카카오톡 챗봇 서버를 만�
 
 ## 언어 특징
 
-Rust는 C언어와 비슷한 성능을 낼 수 있는데 메모리 안전(no leak, safe rust 기준)이 가장 큰 특징입니다.
+Rust는 C언어와 비슷한 성능을 낼 수 있는데 메모리 안전(safe rust 기준), Fearless concurrency들이 가장 큰 특징입니다.
 
 (변수 생명 주기도 컨트롤 가능)
 
@@ -110,6 +112,33 @@ impl<'de> Deserialize<'de> for Button {
     ...
 ```
 
+```rust
+// 또한 멀티 쓰레딩 예제
+fn main() {
+  const MAX: u32 = 200_000;
+  let mut counter = 0;
+  let t1 = std::thread::spawn(|| {
+    counter += (2.. MAX/2).filter(|n| is_prime(*n)).count();
+  });
+  let t2 = std::thread::spawn(|| {
+    counter += (2.. MAX/2).filter(|n| is_prime(*n)).count();
+  });
+
+  t1.join();
+  t2.join();
+  println!("총 {counter}개의 프라임 넘버 찾음");
+}
+
+/*
+위 코드는 c++과 같은 언어에서 작동하여 이상한 결과를 얻을 수 있지만
+Rust에서는 아예 컴파일이 안된다.
+
+오류:
+counter라는 변수가 1개 이상 mutable 빌리기가 있을 것 같다.
+counter라는 변수가 빌린 값보다 더 오래 사는 것 같다. lifetime 오류
+*/
+```
+
 # 코딩 시작
 
 긴 서론을 넘어 코딩을 시작해보십니다.
@@ -137,6 +166,7 @@ impl<'de> Deserialize<'de> for Button {
 
     ```sh
     $ cd my_kakao
+    $ rustup override set nightly
     ```
 
 4. `Cargo.toml` 수정:

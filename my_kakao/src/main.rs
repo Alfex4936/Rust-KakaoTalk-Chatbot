@@ -1,4 +1,5 @@
-use actix_web::{middleware, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::middleware::{Compress, Logger, NormalizePath};
+use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
 use futures::TryStreamExt;
 use kakao_rs::prelude::*;
 use mongodb::{bson::doc, options::ClientOptions, Client};
@@ -69,7 +70,9 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(data.clone()) // <- db는 이런 식으로 서버로 연동
-            .wrap(middleware::Logger::default())
+            .wrap(Compress::default())
+            .wrap(NormalizePath::default())
+            .wrap(Logger::default())
             .service(get_holidays)
     })
     .bind(SERVER)?
