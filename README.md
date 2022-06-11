@@ -17,7 +17,9 @@ Rust언어로 24시간 운영되는 간단한 카카오톡 챗봇 서버를 만�
 
 따라서 언어를 잘 몰라도 일단 따라하면서 익힐 수 있도록 목표 삼았습니다.]
 
-(Rust 1.63.0 + WSL2 환경에서 제작됨)
+(Rust 1.63.0 + WSL2 환경에서 제작됨)(
+
+(Docker | RaspberryPI 지원)
 
 # 무엇을 만들 것인가?
 
@@ -175,16 +177,19 @@ counter라는 변수가 빌린 값보다 더 오래 사는 것 같다. lifetime 
     외부 라이브러리 사용할 때 cargo.toml에 적으면 됩니다.
 
     ```toml
+    [build-dependencies]
+    dotenv = "0.15"  # .env 파일 환경 변수
+
     [dependencies]
-    actix-rt = "2"
-    actix-http = "3"
-    actix-web = "4" 
-    futures = "0.3"
-    serde = { version = "1.0", features = ["derive"] }
-    serde_json = "1.0"
-    serde_derive = "1.0"
-    mongodb = "2"
-    kakao-rs = "0.3"
+    actix-rt = "2"   # 웹서버 열기
+    actix-http = "3"   # 웹서버 열기
+    actix-web = "4"   # 웹서버 열기
+    futures = "0.3"  # 비동기
+    serde = { version = "1.0", features = ["derive"] }  # JSON
+    serde_json = "1.0"  # JSON
+    serde_derive = "1.0"  # JSON
+    mongodb = "2"  # 몽고DB
+    kakao-rs = "0.3"  # 카카오 챗봇 JSON 만드는 라이브러리 (직접 제작)
 
     [profile.dev]
     opt-level = 0
@@ -346,13 +351,12 @@ TIP
 
     #[macro_use]
     extern crate serde_derive;
-    #[macro_use]
     extern crate serde_json;
 
     extern crate mongodb;
 
     // 아래 URL에는 mongo+srv//id:password~~~~
-    // 형태로 된 주소 복사하거나 환경 변수에 넣어서 보호
+    // .env.example 파일에 설정하세요.
     pub const MONGO_URL: &str = env!("MONGODB_URL");
     pub const SERVER: &str = "0.0.0.0:8010";
 
@@ -363,7 +367,6 @@ TIP
         pub date: String,
         pub day_of_week: String,
     }
-
     ```
 
 2. `src/main.rs` 메인 함수 편집
@@ -371,7 +374,8 @@ TIP
     프로그램을 실행하면 main 함수가 실행됩니다.
 
     ```rust
-    use actix_web::{middleware, post, web, App, HttpResponse, HttpServer, Responder};
+    use actix_web::middleware::{Compress, Logger, NormalizePath};
+    use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
     use futures::TryStreamExt;
     use kakao_rs::prelude::*;
     use mongodb::{bson::doc, options::ClientOptions, Client};
@@ -438,16 +442,46 @@ TIP
     async fn main() -> std::io::Result<()> {
         let data = web::Data::new(init_mongo().await); // MongoDB 초기화
 
+        println!("\n===> Welcome to Rust KakaoChat bot!");
+
         // 서버 실행
         HttpServer::new(move || {
             App::new()
                 .app_data(data.clone()) // <- db는 이런 식으로 서버로 연동
-                .wrap(middleware::Logger::default())
+                .wrap(Compress::default())
+                .wrap(NormalizePath::default())
+                .wrap(Logger::default())
                 .service(get_holidays)
         })
         .bind(SERVER)?
         .run()
         .await
+    }
+    ```
+
+3. `.env.example` 파일 수정
+
+    환경 변수 값은 production에는 숨기는게 좋기 때문에 숨겨봅시다.
+
+    MONGODB_URL=자신의 URL을 넣습니다.
+
+4. `build.rs` 수정
+
+    cargo로 빌드 할 때 특정 명령어들을 실행시켜 코드에 적용시킬 수 있습니다.
+
+    빌드 시 환경변수 값을 미리 불러서 `lib.rs`에서 불러옵니다.
+
+    ```rust
+    use dotenv::dotenv;
+    use std::env;
+
+    fn main() {
+        dotenv().ok(); // dotenv 라이브러리가 .env 로드
+
+        // 이 부분 핵심
+        let database_url = env::var("MONGODB_URL").expect("MONGODB_URL must be set");
+
+        println!("cargo:rustc-env=MONGODB_URL={database_url}");
     }
     ```
 

@@ -1,0 +1,4 @@
+.env*
+my_kakao/target
+my_kakao/.env*
+Dockerfile

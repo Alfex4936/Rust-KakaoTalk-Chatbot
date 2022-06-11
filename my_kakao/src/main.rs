@@ -66,6 +66,8 @@ pub async fn show_holidays(conn: &Mongo) -> Result<Vec<Holiday>, ()> {
 async fn main() -> std::io::Result<()> {
     let data = web::Data::new(init_mongo().await); // MongoDB 초기화
 
+    println!("\n===> Welcome to Rust KakaoChat bot!");
+
     // 서버 실행
     HttpServer::new(move || {
         App::new()

@@ -8,7 +8,7 @@ extern crate serde_json;
 extern crate mongodb;
 
 // 아래 URL에는 mongo+srv//id:password~~~~
-// 형태로 된 주소 복사하거나 환경 변수에 넣어서 보호
+// .env.example 파일에 설정하세요.
 pub const MONGO_URL: &str = env!("MONGODB_URL");
 pub const SERVER: &str = "0.0.0.0:8010";
 
